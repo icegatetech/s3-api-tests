@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help env test-if-match test-if-not-match test-all
+.PHONY: help env test-if-match test-if-not-match test-list-order
 
 env:
 	@if [[ -f .env ]]; then \
@@ -16,4 +16,5 @@ test-if-match:
 test-if-not-match:
 	@bash ./test_put_if_not_match.sh
 
-test-all: test-if-match test-if-not-match
+test-list-order:
+	@bash ./test_list_order.sh

@@ -1,9 +1,10 @@
-# S3 If-Match / If-None-Match Tests
+# S3 Compability Tests
 
-A small project with bash scripts for testing conditional `PUT` requests in S3:
+A small project with bash scripts for testing S3 API compability:
 
 - `test_put_if_match.sh` - tests `If-Match`
 - `test_put_if_not_match.sh` - tests `If-None-Match`
+- `test_list_order.sh` - tests global `LIST` order across pagination for WAL keys
 
 Works with both AWS S3 and S3-compatible providers (MinIO, Ceph RGW, etc.).
 
@@ -11,6 +12,13 @@ Works with both AWS S3 and S3-compatible providers (MinIO, Ceph RGW, etc.).
 
 - `aws` CLI v2
 - S3 access (access key, secret key, region)
+
+AWS CLI installation:
+
+- Official install guide (all platforms): https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+- Linux: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#cliv2-linux-install
+- macOS: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#cliv2-mac-install
+- Windows: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#cliv2-windows-install
 
 ## Setup
 
@@ -38,7 +46,7 @@ Using `make`:
 ```bash
 make test-if-match
 make test-if-not-match
-make test-all
+make test-list-order
 ```
 
 Or directly:
@@ -46,12 +54,24 @@ Or directly:
 ```bash
 bash test_put_if_match.sh
 bash test_put_if_not_match.sh
+bash test_list_order.sh
 ```
+
+## S3 API Tests
+## Pagination Order Test (WAL)
+
+`test_list_order.sh` creates WAL objects with lexicographic keys:
+
+- `wal/0000001` ... `wal/0000201`
+
+Then it lists objects with page size `100` (`list-objects-v2 --max-keys 100`) and checks:
+
+- pagination is real (`page_count >= 2`)
+- first key on each next page is strictly greater than the previous page last key
+- global last key from paginated traversal is exactly `wal/0000201`
+
+This verifies that the last WAL key is found globally across pages, not only inside one page.
 
 ## Useful `.env` Variables
 
-- `BUCKET_NAME` - fixed bucket name (if not set, generated automatically)
-- `KEY_NAME` - object key (default: `obj`)
-- `CREATE_BUCKET` - create bucket in test (`true`/`false`)
-- `CLEANUP_BUCKET` - delete object and bucket after test (`true`/`false`)
-- `TEST_PREFIX` - prefix for auto-generated bucket name
+See in `.env.example`.
